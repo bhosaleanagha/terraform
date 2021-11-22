@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    com.datadoghq.ad.logs: '[{"source": "datadog-agent", "service": "datadog-agent"}]'
+    kompose.cmd: kompose convert
+    kompose.version: 1.24.0 (7c629530)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: datadog
+  name: datadog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: datadog
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        com.datadoghq.ad.logs: '[{"source": "datadog-agent", "service": "datadog-agent"}]'
+        kompose.cmd: kompose convert
+        kompose.version: 1.24.0 (7c629530)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/micro_network: "true"
+        io.kompose.service: datadog
+    spec:
+      containers:
+        - env:
+            - name: DD_API_KEY
+              value: f5b955fed841367b4d38783219444bee
+            - name: DD_APM_ENABLED
+              value: "true"
+            - name: DD_APM_NON_LOCAL_TRAFFIC
+              value: "true"
+            - name: DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL
+              value: "true"
+            - name: DD_LOGS_ENABLED
+              value: "true"
+            - name: DD_PROCESS_AGENT_ENABLED
+              value: "true"
+            - name: DD_TAGS
+              value: '''env:prod'''
+          image: datadog/agent:latest
+          name: datadog-agent
+          ports:
+            - containerPort: 8126
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: datadog-claim0
+            - mountPath: /host/proc/
+              name: datadog-claim1
+              readOnly: true
+            - mountPath: /host/sys/fs/cgroup
+              name: datadog-claim2
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - name: datadog-claim0
+          persistentVolumeClaim:
+            claimName: datadog-claim0
+        - name: datadog-claim1
+          persistentVolumeClaim:
+            claimName: datadog-claim1
+            readOnly: true
+        - name: datadog-claim2
+          persistentVolumeClaim:
+            claimName: datadog-claim2
+            readOnly: true
+status: {}

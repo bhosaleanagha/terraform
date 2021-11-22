@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    com.datadoghq.ad.logs: '[{"source": "python", "service": "user-service"}]'
+    kompose.cmd: kompose convert
+    kompose.version: 1.24.0 (7c629530)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: user-api
+  name: user-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: user-api
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        com.datadoghq.ad.logs: '[{"source": "python", "service": "user-service"}]'
+        kompose.cmd: kompose convert
+        kompose.version: 1.24.0 (7c629530)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/micro_network: "true"
+        io.kompose.service: user-api
+    spec:
+      containers:
+        - env:
+            - name: DATADOG_SERVICE_NAME
+              value: user-service
+            - name: DD_AGENT_HOST
+              value: datadog-agent
+            - name: DD_ANALYTICS_ENABLED
+              value: "true"
+            - name: DD_ENV
+              value: prod
+            - name: DD_LOGS_INJECTION
+              value: "true"
+            - name: DD_TRACE_AGENT_PORT
+              value: "8126"
+            - name: DD_TRACE_SAMPLE_RATE
+              value: "0.1"
+          image: ajitha1234/userservice:latest
+          name: cuser-service
+          ports:
+            - containerPort: 5001
+          resources: {}
+      restartPolicy: Always
+status: {}

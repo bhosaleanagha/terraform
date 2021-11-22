@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8-microservice-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: python-flask-microservices
+  template:
+    metadata:
+      labels:
+        app: python-flask-microservices
+    spec:
+      containers:
+        - name: cfrontend-app
+          image: ajitha1234/frontend:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: DD_AGENT_HOST
+              value: datadog-agent
+            - name: DD_TRACE_AGENT_PORT
+              value: ${AGENT_PORT}
+            - name: DD_LOGS_INJECTION
+              value: true
+            - name: DD_ANALYTICS_ENABLED
+              value: true
+            - name: DD_TRACE_SAMPLE_RATE
+              value: ${SAMPLE_RATE}
+            - name: DD_ENV
+              value: prod
+            - name: DD_RUNTIME_METRICS_ENABLED
+              value: true
+            - name: DATADOG_SERVICE_NAME
+              value: shop-frontend
+        - name: cuser-service
+          image: ajitha1234/userservice:latest
+          ports:
+            - containerPort: 5001
+          env:
+            - name: DD_AGENT_HOST
+              value: datadog-agent
+            - name: DD_TRACE_AGENT_PORT
+              value: ${AGENT_PORT}
+            - name: DD_LOGS_INJECTION
+              value: true
+            - name: DD_ANALYTICS_ENABLED
+              value: true
+            - name: DD_TRACE_SAMPLE_RATE
+              value: ${SAMPLE_RATE}
+            - name: DD_ENV
+              value: prod
+            - name: DD_RUNTIME_METRICS_ENABLED
+              value: true
+            - name: DATADOG_SERVICE_NAME
+              value: user-service
+        - name: cuser_dbase
+          image: mysql:8
+          ports:
+            - port: 32000
+              targetPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: pfm_dc_2020
+            - name: MYSQL_DATABASE
+              value: user
+            - name: MYSQL_USER
+              value: cloudacademy
+            - name: MYSQL_PASSWORD
+              value: pfm_2020
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8-microservice-deployment
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: python-flask-microservices

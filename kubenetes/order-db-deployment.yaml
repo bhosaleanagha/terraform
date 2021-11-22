@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    com.datadoghq.ad.logs: '[{"source": "mysql", "service": "order-mysql"}]'
+    kompose.cmd: kompose convert
+    kompose.version: 1.24.0 (7c629530)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: order-db
+  name: order-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: order-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        com.datadoghq.ad.logs: '[{"source": "mysql", "service": "order-mysql"}]'
+        kompose.cmd: kompose convert
+        kompose.version: 1.24.0 (7c629530)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/micro_network: "true"
+        io.kompose.service: order-db
+    spec:
+      containers:
+        - env:
+            - name: MYSQL_DATABASE
+              value: order
+            - name: MYSQL_PASSWORD
+              value: pfm_2020
+            - name: MYSQL_ROOT_PASSWORD
+              value: pfm_dc_2020
+            - name: MYSQL_USER
+              value: cloudacademy
+          image: mysql:8
+          name: corder-dbase
+          ports:
+            - containerPort: 3306
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: orderdb-vol
+      restartPolicy: Always
+      volumes:
+        - name: orderdb-vol
+          persistentVolumeClaim:
+            claimName: orderdb-vol
+status: {}
